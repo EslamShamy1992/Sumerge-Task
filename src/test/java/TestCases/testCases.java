@@ -2,13 +2,13 @@ package TestCases;
 
 import Base.BaseTest;
 import Config.ConfigUtils;
+import PageObjects.LoginPage;
+import PageObjects.ProductPage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -18,47 +18,57 @@ import java.util.List;
 public class testCases extends BaseTest {
 
 
+    LoginPage loginPage;
+    ProductPage productPage;
 
-    @Test
+    @Test(priority = 1)
     public void Login_with_A_Valid_Credentails() {
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        // assert that the user is logged in successfully and products text is displayed
-        Assert.assertTrue(driver.findElement(By.xpath("//*[@id=\"header_container\"]/div[2]/span")).isDisplayed());
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+         // assert that the user is logged in successfully and products text is displayed
+        Assert.assertTrue(productPage.isProductsHeaderDisplayed());
     }
 
-    @Test
+    @Test(priority = 2)
     public void Login_with_InValid_Credentails() {
+
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys("Invalid uder");
-        driver.findElement(By.id("password")).sendKeys("12345678");
-        driver.findElement(By.id("login-button")).click();
+        loginPage.enterUsername("Invalid user");
+        loginPage.enterPassword("12345678");
+        loginPage.clickLoginButton();
         //assert that the error message is displayed
-        Assert.assertTrue(driver.findElement(By.xpath("//*[@id=\"login_button_container\"]/div/form/div[3]/h3")).isDisplayed());
+        Assert.assertTrue(loginPage.isErrorMessageDisplayed());
+
     }
 
-    @Test
+    @Test(priority = 3)
     public void Validate_that_all_products_Is_Displayed() {
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        List<WebElement> products = driver.findElements(By.className("inventory_item"));
-        int expected = 6;
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        List<WebElement> products = productPage.getProductItems();
         //Assert that the number of displayed products is 6
-        Assert.assertEquals(expected, products.size());
+        Assert.assertEquals(products.size(), 6);
     }
 
-    @Test
+    @Test(priority = 4)
     public void Valiate_Product_Details() {
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        List<WebElement> products = driver.findElements(By.className("inventory_item"));
-
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        List<WebElement> products = productPage.getProductItems();
         // Expected details
         String[] expectedNames = {"Sauce Labs Backpack", "Sauce Labs Bike Light", "Sauce Labs Bolt T-Shirt", "Sauce Labs Fleece Jacket", "Sauce Labs Onesie", "Test.allTheThings() T-Shirt (Red)"};
         String[] expectedPrices = {"$29.99", "$9.99", "$15.99", "$49.99", "$7.99", "$15.99"};
@@ -85,20 +95,20 @@ public class testCases extends BaseTest {
         }
     }
 
-    @Test
+    @Test(priority = 5)
     public void Validate_Price_Sorting_Low_To_High() {
 
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        WebElement sortDropdown = driver.findElement(By.className("product_sort_container"));
-        Select sortSelect = new Select(sortDropdown);
-        sortSelect.selectByVisibleText("Price (low to high)");
-        List<WebElement> productPrices = driver.findElements(By.className("inventory_item_price"));
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        productPage.selectSortOption("Price (low to high)");
+        List<WebElement> productPrices = productPage.getProductItems();
         List<Float> prices = new ArrayList<>();
         for (WebElement priceElement : productPrices) {
-            String priceText = priceElement.getText().replace("$", "");
+            String priceText = priceElement.findElement(By.className("inventory_item_price")).getText().replace("$", "");
             prices.add(Float.parseFloat(priceText));
         }
         List<Float> sortedPrices = new ArrayList<>(prices);
@@ -106,71 +116,73 @@ public class testCases extends BaseTest {
 
         // Assert that prices is sorted correctly
         Assert.assertEquals(prices, sortedPrices);
+
     }
 
-    @Test
+    @Test(priority = 6)
     public void Add_Product_To_Cart_And_verify_the_update() {
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        productPage.addToCart("sauce-labs-backpack");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement cartBadge = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".shopping_cart_container .shopping_cart_badge")));
-
+        WebElement cartBadge = wait.until(ExpectedConditions.visibilityOfElementLocated(productPage.cartBadge));
         // Verify that the cart is updated
-        String itemCount = cartBadge.getText();
-        Assert.assertEquals(itemCount, "1");
+        Assert.assertEquals(cartBadge.getText(), "1");
     }
 
-    @Test
+    @Test(priority = 7)
     public void Remove_product_from_cart(){
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        productPage.addToCart("sauce-labs-backpack");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement cartBadge = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".shopping_cart_container .shopping_cart_badge")));
-        String itemCount = cartBadge.getText();
-        // Verify that the cart is updated
-        Assert.assertEquals(itemCount, "1");
-       driver.findElement(By.id("remove-sauce-labs-backpack")).click();
-        List<WebElement> shoppingCart = driver.findElements(By.cssSelector(".shopping_cart_badge"));
-
+        WebElement cartBadge = wait.until(ExpectedConditions.visibilityOfElementLocated(productPage.cartBadge));
+        Assert.assertEquals(cartBadge.getText(), "1");
+        productPage.removeFromCart("sauce-labs-backpack");
+        List<WebElement> shoppingCart = driver.findElements(productPage.cartBadge);
         // Assert that cart is empty
         Assert.assertTrue(shoppingCart.isEmpty());
+
     }
 
-    @Test
+    @Test(priority = 8)
     public void verify_update_shopping_cart_badge(){
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        productPage.addToCart("sauce-labs-backpack");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement cartBadge = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".shopping_cart_container .shopping_cart_badge")));
-        String itemCount = cartBadge.getText();
+        WebElement cartBadge = wait.until(ExpectedConditions.visibilityOfElementLocated(productPage.cartBadge));
         // Verify that the cart is updated
-        Assert.assertEquals(itemCount, "1");
-        driver.findElement(By.id("remove-sauce-labs-backpack")).click();
-        List<WebElement> shoppingCart = driver.findElements(By.cssSelector(".shopping_cart_badge"));
-
+        Assert.assertEquals(cartBadge.getText(), "1");
+        productPage.removeFromCart("sauce-labs-backpack");
+        List<WebElement> shoppingCart = driver.findElements(productPage.cartBadge);
         // Assert that cart is updated after remove the item
         Assert.assertTrue(shoppingCart.isEmpty());
     }
-
-    @Test
+    @Test(priority = 9)
     public void Verify_Logout_Functionality(){
+        loginPage= new LoginPage(driver);
+        productPage= new ProductPage(driver);
         driver.get(ConfigUtils.getInstance().getBaseUrl());
-        driver.findElement(By.id("user-name")).sendKeys(ConfigUtils.getInstance().getEmail());
-        driver.findElement(By.id("password")).sendKeys(ConfigUtils.getInstance().getPassword());
-        driver.findElement(By.id("login-button")).click();
-        driver.findElement(By.id("react-burger-menu-btn")).click();
-        driver.findElement(By.id("logout_sidebar_link")).click();
+        loginPage.enterUsername(ConfigUtils.getInstance().getEmail());
+        loginPage.enterPassword(ConfigUtils.getInstance().getPassword());
+        loginPage.clickLoginButton();
+        productPage.clickMenuButton();
+        productPage.clickLogout();
+        // Verify that the login button is displayed on the login page
+        Assert.assertTrue(loginPage.isLoginButtonDisplayed());
 
-        //verify that the login button is displayed in login page
-        Assert.assertTrue(driver.findElement(By.id("login-button")).isDisplayed());
     }
 }

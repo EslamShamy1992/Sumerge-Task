@@ -14,7 +14,7 @@ public class LoginPage extends BasePage {
     By loginButton = By.id("login-button");
     By errorMessage = By.xpath("//*[@id='login_button_container']/div/form/div[3]/h3");
 
-    // Actions
+
     public void enterUsername(String username) {
         driver.findElement(usernameField).sendKeys(username);
     }
@@ -31,4 +31,7 @@ public class LoginPage extends BasePage {
         return driver.findElement(errorMessage).isDisplayed();
     }
 
+    public boolean isLoginButtonDisplayed() {
+        return driver.findElement(loginButton).isDisplayed();
+    }
 }
