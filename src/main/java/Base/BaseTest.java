@@ -27,7 +27,7 @@ public class BaseTest {
     public void take_screen_shot(ITestResult result) throws IOException {
 
 
-//        driver.quit();
+     driver.close();
         if (ITestResult.FAILURE == result.getStatus()) {
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             FileUtils.copyFile(screenshot, new File("D:\\screenshot\\fail.png"));

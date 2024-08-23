@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class testCases extends BaseTest {
+public class taskTest extends BaseTest {
 
 
     LoginPage loginPage;
